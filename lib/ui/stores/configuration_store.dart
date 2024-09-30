@@ -38,8 +38,9 @@ abstract class ConfigurationStoreBase with Store {
   }
 
   @action
-  Future loadDarkModeFromStorage() async {
+  Future<bool> loadDarkModeFromStorage() async {
     _darkMode = await ConfigurationService.getDarkMode() ??
         PlatformDispatcher.instance.platformBrightness == Brightness.dark;
+    return _darkMode;
   }
 }

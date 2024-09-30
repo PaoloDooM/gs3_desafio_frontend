@@ -16,6 +16,12 @@ mixin _$UserStore on UserStoreBase, Store {
       (_$apiTokenComputed ??= Computed<String?>(() => super.apiToken,
               name: 'UserStoreBase.apiToken'))
           .value;
+  Computed<UserModel?>? _$userComputed;
+
+  @override
+  UserModel? get user => (_$userComputed ??=
+          Computed<UserModel?>(() => super.user, name: 'UserStoreBase.user'))
+      .value;
 
   late final _$_apiTokenAtom =
       Atom(name: 'UserStoreBase._apiToken', context: context);
@@ -33,15 +39,47 @@ mixin _$UserStore on UserStoreBase, Store {
     });
   }
 
+  late final _$_userAtom = Atom(name: 'UserStoreBase._user', context: context);
+
+  @override
+  UserModel? get _user {
+    _$_userAtom.reportRead();
+    return super._user;
+  }
+
+  @override
+  set _user(UserModel? value) {
+    _$_userAtom.reportWrite(value, super._user, () {
+      super._user = value;
+    });
+  }
+
+  late final _$setApiTokenAsyncAction =
+      AsyncAction('UserStoreBase.setApiToken', context: context);
+
+  @override
+  Future<dynamic> setApiToken(String? apiToken) {
+    return _$setApiTokenAsyncAction.run(() => super.setApiToken(apiToken));
+  }
+
+  late final _$loadApiTokenFromStorageAsyncAction =
+      AsyncAction('UserStoreBase.loadApiTokenFromStorage', context: context);
+
+  @override
+  Future<String?> loadApiTokenFromStorage() {
+    return _$loadApiTokenFromStorageAsyncAction
+        .run(() => super.loadApiTokenFromStorage());
+  }
+
   late final _$UserStoreBaseActionController =
       ActionController(name: 'UserStoreBase', context: context);
 
   @override
-  dynamic setApiToken(String? apiToken) {
+  dynamic setUser(UserModel? user) {
     final _$actionInfo = _$UserStoreBaseActionController.startAction(
-        name: 'UserStoreBase.setApiToken');
+        name: 'UserStoreBase.setUser');
     try {
-      return super.setApiToken(apiToken);
+      return super.setUser(user);
     } finally {
       _$UserStoreBaseActionController.endAction(_$actionInfo);
     }
@@ -50,7 +88,8 @@ mixin _$UserStore on UserStoreBase, Store {
   @override
   String toString() {
     return '''
-apiToken: ${apiToken}
+apiToken: ${apiToken},
+user: ${user}
     ''';
   }
 }

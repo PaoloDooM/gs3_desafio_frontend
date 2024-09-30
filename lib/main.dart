@@ -5,7 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:gs3_desafio_front/src/apis/http_api_client.dart';
 import 'package:gs3_desafio_front/src/configurations.dart';
-import 'package:gs3_desafio_front/ui/pages/login/login_page.dart';
+import 'package:gs3_desafio_front/ui/pages/login_page.dart';
 import 'package:gs3_desafio_front/ui/stores/configuration_store.dart';
 import 'package:gs3_desafio_front/ui/stores/user_store.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
@@ -49,25 +49,23 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Observer(
-      builder: (context) {
-        return MaterialApp(
-          scrollBehavior: const MaterialScrollBehavior().copyWith(
-            dragDevices: {
-              PointerDeviceKind.mouse,
-              PointerDeviceKind.touch,
-              PointerDeviceKind.stylus,
-              PointerDeviceKind.unknown
-            },
-          ),
-          title: 'GS3 desafio',
-          scaffoldMessengerKey: snackbarKey,
-          navigatorKey: navigatorKey,
-          debugShowCheckedModeBanner: false,
-          theme: GetIt.I<ConfigurationStore>().theme,
-          home: const LoginPage(),
-        );
-      }
-    );
+    return Observer(builder: (context) {
+      return MaterialApp(
+        scrollBehavior: const MaterialScrollBehavior().copyWith(
+          dragDevices: {
+            PointerDeviceKind.mouse,
+            PointerDeviceKind.touch,
+            PointerDeviceKind.stylus,
+            PointerDeviceKind.unknown
+          },
+        ),
+        title: 'GS3 desafio',
+        scaffoldMessengerKey: snackbarKey,
+        navigatorKey: navigatorKey,
+        debugShowCheckedModeBanner: false,
+        theme: GetIt.I<ConfigurationStore>().theme,
+        home: const LoginPage(),
+      );
+    });
   }
 }

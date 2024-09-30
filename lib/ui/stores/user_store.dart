@@ -1,5 +1,6 @@
 import 'package:mobx/mobx.dart';
 
+import '../../src/models/user_model.dart';
 import '../../src/services/user_service.dart';
 
 part 'user_store.g.dart';
@@ -14,10 +15,25 @@ abstract class UserStoreBase with Store {
   String? get apiToken => _apiToken;
 
   @action
-  setApiToken(String? apiToken) => _apiToken = apiToken;
+  Future setApiToken(String? apiToken) async {
+    _apiToken = apiToken;
+    await UserService.setApiToken(_apiToken);
+  }
 
   @action
-  Future loadApiTokenFromStorage() async {
+  Future<String?> loadApiTokenFromStorage() async {
     _apiToken = await UserService.getApiToken();
+    return _apiToken;
+  }
+
+  @observable
+  UserModel? _user;
+
+  @computed
+  UserModel? get user => _user;
+
+  @action
+  setUser(UserModel? user) {
+    _user = user;
   }
 }

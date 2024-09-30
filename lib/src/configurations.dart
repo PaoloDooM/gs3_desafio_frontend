@@ -1,6 +1,6 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-enum SecureStorageKeys {token, rememberEmail, darkMode}
+enum SecureStorageKeys { token, rememberEmail, darkMode }
 
 class Configurations {
   static String get baseUrl => dotenv.env['BASEURL']!;

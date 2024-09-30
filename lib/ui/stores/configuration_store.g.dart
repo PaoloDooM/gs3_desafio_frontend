@@ -53,7 +53,7 @@ mixin _$ConfigurationStore on ConfigurationStoreBase, Store {
       context: context);
 
   @override
-  Future<dynamic> loadDarkModeFromStorage() {
+  Future<bool> loadDarkModeFromStorage() {
     return _$loadDarkModeFromStorageAsyncAction
         .run(() => super.loadDarkModeFromStorage());
   }
