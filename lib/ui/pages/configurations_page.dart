@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:get_it/get_it.dart';
+import 'package:gs3_desafio_front/ui/pages/addresses_page.dart';
+import 'package:gs3_desafio_front/ui/pages/phones_page.dart';
+import 'package:gs3_desafio_front/ui/stores/address_page_store.dart';
 import 'package:gs3_desafio_front/ui/widgets/user_header.dart';
 import '../../main.dart';
 import '../stores/configuration_store.dart';
+import '../stores/phone_page_store.dart';
 import '../stores/user_store.dart';
 
 class ConfigurationsPage extends StatefulWidget {
@@ -15,6 +19,14 @@ class ConfigurationsPage extends StatefulWidget {
 
 class ConfigurationsPageState extends State<ConfigurationsPage> {
   ScrollController scrollBarBodyController = ScrollController();
+  final GlobalKey<RefreshIndicatorState> _refreshKey =
+      GlobalKey<RefreshIndicatorState>();
+
+  @override
+  void dispose() {
+    scrollBarBodyController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,11 +41,16 @@ class ConfigurationsPageState extends State<ConfigurationsPage> {
             },
           ),
         ),
-        body: Scrollbar(
-          controller: scrollBarBodyController,
-          child: SingleChildScrollView(
+        body: RefreshIndicator(
+          key: _refreshKey,
+          onRefresh: () async {
+            await GetIt.I<UserStore>().refreshUser();
+          },
+          child: Scrollbar(
             controller: scrollBarBodyController,
-            child: Column(
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              controller: scrollBarBodyController,
               children: [
                 InkWell(
                   onTap: () {},
@@ -90,7 +107,7 @@ class ConfigurationsPageState extends State<ConfigurationsPage> {
                                   children: [
                                 TextSpan(
                                     text:
-                                        "${GetIt.I<UserStore>().user?.email ?? " "}\n",
+                                        GetIt.I<UserStore>().user?.email ?? "",
                                     style: const TextStyle(
                                         fontWeight: FontWeight.normal)),
                               ])),
@@ -98,7 +115,7 @@ class ConfigurationsPageState extends State<ConfigurationsPage> {
                       ),
                       Padding(
                         padding:
-                            const EdgeInsets.only(left: 8, top: 0, right: 8),
+                            const EdgeInsets.only(left: 8, top: 10, right: 8),
                         child: Align(
                           alignment: Alignment.centerLeft,
                           child: RichText(
@@ -113,10 +130,71 @@ class ConfigurationsPageState extends State<ConfigurationsPage> {
                                 children: [
                                   TextSpan(
                                       text:
-                                          GetIt.I<UserStore>().user?.cpf ?? " ",
+                                          GetIt.I<UserStore>().user?.cpf ?? "",
                                       style: const TextStyle(
                                           fontWeight: FontWeight.normal))
                                 ]),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding:
+                            const EdgeInsets.only(left: 8, top: 16, right: 8),
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: () {
+                            AddressPageStore addressStore = AddressPageStore(
+                                GetIt.I<UserStore>().user?.addresses ?? []);
+                            navigatorKey.currentState
+                                ?.push(MaterialPageRoute<void>(
+                              builder: (BuildContext context) => AddressesPage(
+                                  addressesStore: addressStore,
+                                  refreshAddresses: () async {
+                                    await addressStore.refreshAddresses();
+                                  }),
+                            ));
+                          },
+                          style: ButtonStyle(
+                            side: MaterialStateProperty.all(BorderSide(
+                                color: GetIt.I<ConfigurationStore>()
+                                    .theme
+                                    .colorScheme
+                                    .primary,
+                                width: 2)),
+                          ),
+                          child: const Text("Addresses",
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                      Container(
+                        padding:
+                            const EdgeInsets.only(left: 8, top: 10, right: 8),
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: () {
+                            PhonePageStore phoneStore = PhonePageStore(
+                                GetIt.I<UserStore>().user?.telephoneNumbers ??
+                                    []);
+                            navigatorKey.currentState
+                                ?.push(MaterialPageRoute<void>(
+                              builder: (BuildContext context) => PhonesPage(
+                                  phonesStore: phoneStore,
+                                  refreshPhones: () async {
+                                    await phoneStore.refreshPhoneNumbers();
+                                  }),
+                            ));
+                          },
+                          style: ButtonStyle(
+                            side: MaterialStateProperty.all(BorderSide(
+                                color: GetIt.I<ConfigurationStore>()
+                                    .theme
+                                    .colorScheme
+                                    .primary,
+                                width: 2)),
+                          ),
+                          child: const Text(
+                            "Phone numbers",
+                            style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),
                       ),

@@ -41,6 +41,7 @@ class HttpInterceptor extends InterceptorsWrapper {
       navigatorKey.currentState?.pushReplacement(MaterialPageRoute<void>(
         builder: (BuildContext context) => const LoginPage(),
       ));
+      GetIt.I<UserStore>().setUser(null);
     } else {
       GetIt.I<HttpApiClient>()
           .removeCancelToken(err.requestOptions.cancelToken);

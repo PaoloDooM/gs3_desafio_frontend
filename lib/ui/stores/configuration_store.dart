@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:gs3_desafio_front/src/services/configuration_service.dart';
 import 'package:mobx/mobx.dart';
 
+import '../../src/models/profile_model.dart';
+
 part 'configuration_store.g.dart';
 
 class ConfigurationStore = ConfigurationStoreBase with _$ConfigurationStore;
@@ -42,5 +44,16 @@ abstract class ConfigurationStoreBase with Store {
     _darkMode = await ConfigurationService.getDarkMode() ??
         PlatformDispatcher.instance.platformBrightness == Brightness.dark;
     return _darkMode;
+  }
+
+  @observable
+  ObservableList<ProfileModel> _userProfiles = ObservableList.of([]);
+
+  @computed
+  ObservableList<ProfileModel> get userProfiles => _userProfiles;
+
+  @action
+  setUserProfiles(List<ProfileModel> userProfiles) {
+    _userProfiles = ObservableList.of(userProfiles);
   }
 }

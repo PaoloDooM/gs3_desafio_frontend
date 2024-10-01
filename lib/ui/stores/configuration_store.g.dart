@@ -23,6 +23,13 @@ mixin _$ConfigurationStore on ConfigurationStoreBase, Store {
       (_$themeComputed ??= Computed<ThemeData>(() => super.theme,
               name: 'ConfigurationStoreBase.theme'))
           .value;
+  Computed<ObservableList<ProfileModel>>? _$userProfilesComputed;
+
+  @override
+  ObservableList<ProfileModel> get userProfiles => (_$userProfilesComputed ??=
+          Computed<ObservableList<ProfileModel>>(() => super.userProfiles,
+              name: 'ConfigurationStoreBase.userProfiles'))
+      .value;
 
   late final _$_darkModeAtom =
       Atom(name: 'ConfigurationStoreBase._darkMode', context: context);
@@ -37,6 +44,22 @@ mixin _$ConfigurationStore on ConfigurationStoreBase, Store {
   set _darkMode(bool value) {
     _$_darkModeAtom.reportWrite(value, super._darkMode, () {
       super._darkMode = value;
+    });
+  }
+
+  late final _$_userProfilesAtom =
+      Atom(name: 'ConfigurationStoreBase._userProfiles', context: context);
+
+  @override
+  ObservableList<ProfileModel> get _userProfiles {
+    _$_userProfilesAtom.reportRead();
+    return super._userProfiles;
+  }
+
+  @override
+  set _userProfiles(ObservableList<ProfileModel> value) {
+    _$_userProfilesAtom.reportWrite(value, super._userProfiles, () {
+      super._userProfiles = value;
     });
   }
 
@@ -58,11 +81,26 @@ mixin _$ConfigurationStore on ConfigurationStoreBase, Store {
         .run(() => super.loadDarkModeFromStorage());
   }
 
+  late final _$ConfigurationStoreBaseActionController =
+      ActionController(name: 'ConfigurationStoreBase', context: context);
+
+  @override
+  dynamic setUserProfiles(List<ProfileModel> userProfiles) {
+    final _$actionInfo = _$ConfigurationStoreBaseActionController.startAction(
+        name: 'ConfigurationStoreBase.setUserProfiles');
+    try {
+      return super.setUserProfiles(userProfiles);
+    } finally {
+      _$ConfigurationStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
   @override
   String toString() {
     return '''
 darkMode: ${darkMode},
-theme: ${theme}
+theme: ${theme},
+userProfiles: ${userProfiles}
     ''';
   }
 }

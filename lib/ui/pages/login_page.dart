@@ -42,6 +42,8 @@ class LoginPageState extends State<LoginPage>
   @override
   void dispose() {
     _animationController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
     super.dispose();
   }
 
@@ -173,54 +175,54 @@ class LoginPageState extends State<LoginPage>
                                     Padding(
                                       padding:
                                           const EdgeInsets.only(bottom: 20),
-                                      child: ElevatedButton(
-                                          onPressed: disableForm
-                                              ? null
-                                              : () async {
-                                                  if (_formKey.currentState
-                                                          ?.validate() ??
-                                                      false) {
-                                                    setState(() {
-                                                      showPassword = false;
-                                                      disableForm = true;
-                                                    });
-                                                    await UserService.login(
-                                                        emailController.text,
-                                                        passwordController.text,
-                                                        rememberEmail);
-                                                    try {
-                                                      await getUserAndNavigateToHome();
-                                                    } catch (e) {
-                                                      snackbarKey.currentState
-                                                        ?..clearSnackBars()
-                                                        ..showSnackBar(SnackBar(
-                                                            content: Text(
-                                                              "$e",
-                                                              style: TextStyle(
-                                                                  color: GetIt.I<
+                                      child: SizedBox(
+                                        width: double.infinity,
+                                        child: ElevatedButton(
+                                            onPressed: disableForm
+                                                ? null
+                                                : () async {
+                                                    if (_formKey.currentState
+                                                            ?.validate() ??
+                                                        false) {
+                                                      setState(() {
+                                                        showPassword = false;
+                                                        disableForm = true;
+                                                      });
+                                                      await UserService.login(
+                                                          emailController.text,
+                                                          passwordController
+                                                              .text,
+                                                          rememberEmail);
+                                                      try {
+                                                        await getUserAndNavigateToHome();
+                                                      } catch (e) {
+                                                        snackbarKey.currentState
+                                                          ?..clearSnackBars()
+                                                          ..showSnackBar(
+                                                              SnackBar(
+                                                                  content: Text(
+                                                                    "$e",
+                                                                    style: TextStyle(
+                                                                        color: GetIt.I<ConfigurationStore>()
+                                                                            .theme
+                                                                            .colorScheme
+                                                                            .onError),
+                                                                  ),
+                                                                  duration:
+                                                                      const Duration(
+                                                                          seconds:
+                                                                              12),
+                                                                  backgroundColor: GetIt.I<
                                                                           ConfigurationStore>()
                                                                       .theme
                                                                       .colorScheme
-                                                                      .onError),
-                                                            ),
-                                                            duration:
-                                                                const Duration(
-                                                                    seconds:
-                                                                        12),
-                                                            backgroundColor:
-                                                                GetIt.I<ConfigurationStore>()
-                                                                    .theme
-                                                                    .colorScheme
-                                                                    .error));
-                                                      setState(() {
-                                                        disableForm = false;
-                                                      });
+                                                                      .error));
+                                                        setState(() {
+                                                          disableForm = false;
+                                                        });
+                                                      }
                                                     }
-                                                  }
-                                                },
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 8.0),
+                                                  },
                                             child: disableForm
                                                 ? SizedBox.fromSize(
                                                     size: const Size(20, 20),
@@ -238,8 +240,8 @@ class LoginPageState extends State<LoginPage>
                                                         fontWeight:
                                                             FontWeight.bold,
                                                         fontSize: 20),
-                                                  ),
-                                          )),
+                                                  )),
+                                      ),
                                     )
                                   ],
                                 ),
@@ -254,7 +256,7 @@ class LoginPageState extends State<LoginPage>
                 Align(
                   alignment: Alignment.bottomRight,
                   child: Padding(
-                    padding: const EdgeInsets.all(12.0),
+                    padding: const EdgeInsets.only(bottom: 20.0, right: 16),
                     child: FloatingActionButton(
                       heroTag: "darkMode-tag",
                       onPressed: () async {
@@ -292,6 +294,7 @@ class LoginPageState extends State<LoginPage>
                   TextButton(
                       onPressed: () async {
                         await GetIt.I<UserStore>().setApiToken(null);
+                        await GetIt.I<UserStore>().setUser(null);
                         setState(() {});
                       },
                       child: const Text("Retry",

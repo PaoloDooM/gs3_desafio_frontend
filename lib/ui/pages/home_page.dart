@@ -19,6 +19,12 @@ class HomePageState extends State<HomePage> {
   ScrollController drawerScrollbarController = ScrollController();
 
   @override
+  void dispose() {
+    drawerScrollbarController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Observer(builder: (context) {
       return Scaffold(

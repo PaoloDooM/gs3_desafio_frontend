@@ -1,7 +1,10 @@
+import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:mobx/mobx.dart';
-
+import '../../main.dart';
 import '../../src/models/user_model.dart';
 import '../../src/services/user_service.dart';
+import 'configuration_store.dart';
 
 part 'user_store.g.dart';
 
@@ -35,5 +38,24 @@ abstract class UserStoreBase with Store {
   @action
   setUser(UserModel? user) {
     _user = user;
+  }
+
+  Future refreshUser() async {
+    try {
+      await UserService.getLoggedUser();
+    } catch (e) {
+      snackbarKey.currentState
+        ?..clearSnackBars()
+        ..showSnackBar(SnackBar(
+            content: Text(
+              "$e",
+              style: TextStyle(
+                  color:
+                      GetIt.I<ConfigurationStore>().theme.colorScheme.onError),
+            ),
+            duration: const Duration(seconds: 12),
+            backgroundColor:
+                GetIt.I<ConfigurationStore>().theme.colorScheme.error));
+    }
   }
 }
