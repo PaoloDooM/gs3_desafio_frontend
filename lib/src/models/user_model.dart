@@ -8,6 +8,7 @@ class UserModel {
   late String name;
   late String email;
   late String cpf;
+  String? password;
   DateTime? emailVerifiedAt;
   DateTime? createdAt;
   DateTime? updatedAt;
@@ -20,6 +21,7 @@ class UserModel {
       required this.name,
       required this.email,
       required this.cpf,
+      this.password,
       this.emailVerifiedAt,
       this.createdAt,
       this.updatedAt,
@@ -56,6 +58,9 @@ class UserModel {
     data['name'] = name;
     data['email'] = email;
     data['cpf'] = cpf;
+    if (password != null) {
+      data['password'] = password;
+    }
     data['email_verified_at'] = emailVerifiedAt?.toIso8601String();
     data['created_at'] = createdAt?.toIso8601String();
     data['updated_at'] = updatedAt?.toIso8601String();
@@ -63,6 +68,25 @@ class UserModel {
     data['telephone_numbers'] =
         telephoneNumbers.map((v) => v.toJson()).toList();
     data['profile'] = profile.toJson();
+    return data;
+  }
+
+  Map<String, dynamic> toJsonDto() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['name'] = name;
+    data['email'] = email;
+    data['cpf'] = cpf;
+    if (password != null) {
+      data['password'] = password;
+    }
+    data['email_verified_at'] = emailVerifiedAt?.toIso8601String();
+    data['created_at'] = createdAt?.toIso8601String();
+    data['updated_at'] = updatedAt?.toIso8601String();
+    data['addresses'] = addresses.map((v) => v.toJson()).toList();
+    data['telephone_numbers'] =
+        telephoneNumbers.map((v) => v.toJson()).toList();
+    data['profile_id'] = profile.id;
     return data;
   }
 }

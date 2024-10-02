@@ -12,11 +12,11 @@ class ConfigurationStore = ConfigurationStoreBase with _$ConfigurationStore;
 abstract class ConfigurationStoreBase with Store {
   final ThemeData lightTheme = ThemeData(
       colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple, brightness: Brightness.light),
+          seedColor: const Color(0xff45a1e7), brightness: Brightness.light),
       useMaterial3: false);
   final ThemeData darkTheme = ThemeData(
       colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.cyan, brightness: Brightness.dark),
+          seedColor: const Color(0xff45a1e7), brightness: Brightness.dark),
       useMaterial3: false);
 
   @observable

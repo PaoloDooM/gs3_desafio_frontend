@@ -3,6 +3,7 @@ import 'package:get_it/get_it.dart';
 import 'package:gs3_desafio_front/ui/stores/user_store.dart';
 import 'package:gs3_desafio_front/ui/widgets/custom_form.dart';
 import '../../src/models/telephone_number_model.dart';
+import '../stores/configuration_store.dart';
 
 class PhoneForm extends CustomForm {
   final TelephoneNumberModel? phone;
@@ -47,7 +48,7 @@ class PhoneFormState extends CustomFormState<PhoneForm> {
   TelephoneNumberModel? submit() {
     if (_formKey.currentState?.validate() ?? false) {
       return TelephoneNumberModel(
-          id: -1,
+          id: widget.phone?.id ?? -1,
           userId: GetIt.I<UserStore>().user?.id ?? -1,
           description: descriptionTextController.text,
           number: phoneTextController.text,
@@ -95,18 +96,29 @@ class PhoneFormState extends CustomFormState<PhoneForm> {
                   label: Text("Phone number"), border: OutlineInputBorder()),
             ),
           ),
-          CheckboxListTile(
-            value: favorite,
-            enabled: !disableForm,
-            onChanged: (bool? value) async {
-              if (value != null) {
-                setState(() {
-                  favorite = value;
-                });
-              }
-            },
-            title: const Text("Favorite"),
-          ),
+          Padding(
+              padding: const EdgeInsets.only(top: 15.0),
+              child: Container(
+                width: double.infinity,
+                decoration: ShapeDecoration(
+                  shape: OutlineInputBorder(
+                      borderSide: BorderSide(
+                    color: GetIt.I<ConfigurationStore>().theme.disabledColor,
+                  )),
+                ),
+                child: CheckboxListTile(
+                  value: favorite,
+                  enabled: !disableForm,
+                  onChanged: (bool? value) async {
+                    if (value != null) {
+                      setState(() {
+                        favorite = value;
+                      });
+                    }
+                  },
+                  title: const Text("Favorite"),
+                ),
+              ))
         ],
       ),
     );

@@ -9,6 +9,7 @@ import '../../ui/pages/login_page.dart';
 import '../../ui/stores/configuration_store.dart';
 import '../configurations.dart';
 import '../models/address_model.dart';
+import '../models/user_model.dart';
 import 'configuration_service.dart';
 
 class UserService {
@@ -19,27 +20,12 @@ class UserService {
         content: Text("logging in"),
         duration: Duration(days: 1),
       ));
-    try {
-      await GetIt.I<UserStore>()
-          .setApiToken(await UserApi.login(email, password));
-      if (rememberEmail) {
-        await setRememberedEmail(email);
-      }
-      snackbarKey.currentState?.clearSnackBars();
-    } catch (e) {
-      snackbarKey.currentState
-        ?..clearSnackBars()
-        ..showSnackBar(SnackBar(
-            content: Text(
-              "$e",
-              style: TextStyle(
-                  color:
-                      GetIt.I<ConfigurationStore>().theme.colorScheme.onError),
-            ),
-            duration: const Duration(seconds: 12),
-            backgroundColor:
-                GetIt.I<ConfigurationStore>().theme.colorScheme.error));
+    await GetIt.I<UserStore>()
+        .setApiToken(await UserApi.login(email, password));
+    if (rememberEmail) {
+      await setRememberedEmail(email);
     }
+    snackbarKey.currentState?.clearSnackBars();
   }
 
   static Future logout() async {
@@ -51,8 +37,8 @@ class UserService {
   }
 
   static Future getLoggedUser() async {
-    await ConfigurationService.getProfiles();
     GetIt.I<UserStore>().setUser(await UserApi.getLoggedUser());
+    await ConfigurationService.getProfiles();
   }
 
   static Future setApiToken(String? apiToken) async {
@@ -204,6 +190,40 @@ class UserService {
             backgroundColor:
                 GetIt.I<ConfigurationStore>().theme.colorScheme.background));
       await UserApi.updatePhone(phone);
+      snackbarKey.currentState?.clearSnackBars();
+    } catch (e) {
+      snackbarKey.currentState
+        ?..clearSnackBars()
+        ..showSnackBar(SnackBar(
+            content: Text(
+              "$e",
+              style: TextStyle(
+                  color:
+                      GetIt.I<ConfigurationStore>().theme.colorScheme.onError),
+            ),
+            duration: const Duration(seconds: 12),
+            backgroundColor:
+                GetIt.I<ConfigurationStore>().theme.colorScheme.error));
+    }
+  }
+
+  static Future deleteUser(UserModel user) async {
+    try {
+      snackbarKey.currentState
+        ?..clearSnackBars()
+        ..showSnackBar(SnackBar(
+            content: Text(
+              "deleting user",
+              style: TextStyle(
+                  color: GetIt.I<ConfigurationStore>()
+                      .theme
+                      .colorScheme
+                      .onBackground),
+            ),
+            duration: const Duration(days: 1),
+            backgroundColor:
+                GetIt.I<ConfigurationStore>().theme.colorScheme.background));
+      await UserApi.deleteUser(user);
       snackbarKey.currentState?.clearSnackBars();
     } catch (e) {
       snackbarKey.currentState

@@ -3,7 +3,9 @@ import 'package:get_it/get_it.dart';
 import 'package:gs3_desafio_front/ui/stores/user_store.dart';
 import 'package:mobx/mobx.dart';
 import '../../main.dart';
+import '../../src/apis/user_api.dart';
 import '../../src/models/address_model.dart';
+import '../../src/models/user_model.dart';
 import '../../src/services/user_service.dart';
 import 'configuration_store.dart';
 
@@ -38,10 +40,15 @@ abstract class AddressPageBase with Store {
     _addresses = ObservableList.of(addresses);
   }
 
-  Future refreshAddresses() async {
+  Future refreshAddresses({UserModel? user}) async {
     try {
-      await UserService.getLoggedUser();
-      setAddresses(GetIt.I<UserStore>().user!.addresses);
+      if (user != null) {
+        user = await UserApi.getUserById(user.id);
+        setAddresses(user.addresses);
+      } else {
+        await UserService.getLoggedUser();
+        setAddresses(GetIt.I<UserStore>().user!.addresses);
+      }
     } catch (e) {
       snackbarKey.currentState
         ?..clearSnackBars()

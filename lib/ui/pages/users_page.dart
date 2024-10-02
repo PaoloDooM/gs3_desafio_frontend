@@ -1,34 +1,55 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:get_it/get_it.dart';
 import 'package:gs3_desafio_front/main.dart';
-import 'package:gs3_desafio_front/ui/stores/address_page_store.dart';
 import 'package:gs3_desafio_front/ui/widgets/detail_card.dart';
-import '../../src/models/address_model.dart';
+import '../../src/apis/http_api_client.dart';
+import '../../src/apis/user_api.dart';
+import '../../src/configurations.dart';
+import '../../src/models/profile_model.dart';
+import '../../src/models/user_model.dart';
 import '../../src/services/user_service.dart';
 import '../stores/configuration_store.dart';
+import '../stores/users_page_store.dart';
+import '../widgets/custom_form.dart';
+import '../widgets/dialog_form.dart';
+import '../widgets/error_message.dart';
+import '../widgets/user_details.dart';
+import '../widgets/user_form.dart';
 
-///TODO: IMPLEMENT!!!
+class UsersPage extends StatefulWidget {
+  final UsersPageStore usersStore;
 
-class AddressesPage extends StatefulWidget {
-  final AddressPageStore addressesStore;
-  final Future<void> Function() refreshAddresses;
-
-  const AddressesPage({super.key,
-    required this.addressesStore,
-    required this.refreshAddresses});
+  const UsersPage({super.key, required this.usersStore});
 
   @override
-  State<StatefulWidget> createState() => AddressesPageState();
+  State<StatefulWidget> createState() => UsersPageState();
 }
 
-class AddressesPageState extends State<AddressesPage> {
+class UsersPageState extends State<UsersPage> {
   ScrollController scrollBarBodyController = ScrollController();
   ScrollController scrollBarDrawerController = ScrollController();
   TextEditingController searchController = TextEditingController();
-  final GlobalKey<RefreshIndicatorState> _refreshKey = GlobalKey<
-      RefreshIndicatorState>();
+  final GlobalKey<RefreshIndicatorState> refreshKey =
+      GlobalKey<RefreshIndicatorState>();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final List<DropdownMenuItem<ProfileModel>> profiles = [
+    ProfileModel(id: -1, label: 'All profiles'),
+    ...GetIt.I<ConfigurationStore>().userProfiles
+  ]
+      .map((element) =>
+          DropdownMenuItem(value: element, child: Text(element.label)))
+      .toList();
+
+  @override
+  void initState() {
+    widget.usersStore.setProfile(profiles.first.value);
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      refreshKey.currentState?.show(atTop: true);
+    });
+  }
 
   @override
   void dispose() {
@@ -40,25 +61,26 @@ class AddressesPageState extends State<AddressesPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      key: _scaffoldKey,
-      appBar: AppBar(
-        title: const Text("Addresses"),
-        leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              navigatorKey.currentState?.pop();
-            }),
-        actions: [IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: () {
-              _scaffoldKey.currentState?.openEndDrawer();
-            }),
-        ],
-      ),
-      body: Observer(
-        builder: (context) {
-          return Column(
+    return Observer(
+      builder: (context) {
+        return Scaffold(
+          key: _scaffoldKey,
+          appBar: AppBar(
+            title: const Text("Users"),
+            leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () {
+                  navigatorKey.currentState?.pop();
+                }),
+            actions: [
+              IconButton(
+                  icon: const Icon(Icons.filter_list),
+                  onPressed: () {
+                    _scaffoldKey.currentState?.openEndDrawer();
+                  }),
+            ],
+          ),
+          body: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Padding(
@@ -66,14 +88,14 @@ class AddressesPageState extends State<AddressesPage> {
                 child: TextField(
                   controller: searchController,
                   onChanged: (String? value) {
-                    widget.addressesStore.setSearchString(value ?? "");
+                    widget.usersStore.setSearchString(value ?? "");
                   },
                   decoration: InputDecoration(
                       label: const Text("Search"),
                       prefixIcon: const Icon(Icons.search),
                       suffixIcon: IconButton(
                           onPressed: () {
-                            widget.addressesStore.setSearchString("");
+                            widget.usersStore.setSearchString("");
                             searchController.clear();
                           },
                           icon: const Icon(Icons.clear)),
@@ -84,65 +106,96 @@ class AddressesPageState extends State<AddressesPage> {
                 child: Stack(
                   children: [
                     RefreshIndicator(
-                      key: _refreshKey,
+                      key: refreshKey,
                       onRefresh: () async {
-                        await widget.refreshAddresses();
+                        await widget.usersStore.refreshUsers();
                       },
                       child: Scrollbar(
                         controller: scrollBarBodyController,
-                        child: ListView.builder(
-                          padding: const EdgeInsets.only(bottom: 60),
-                          controller: scrollBarBodyController,
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          itemCount:
-                          widget.addressesStore.filteredAddresses.length,
-                          itemBuilder: (context, index) {
-                            AddressModel address =
-                            widget.addressesStore.filteredAddresses[index];
-                            return DetailCard(
-                              title: address.description,
-                              delete: () async {
-                                await UserService.deleteAddress(address);
-                                await _refreshKey.currentState
-                                    ?.show(atTop: false);
-                              },
-                              edit: () async {},
-                              toggleFavorite: () async {
-                                address.principal = true;
-                                await UserService.updateAddress(address);
-                                await _refreshKey.currentState
-                                    ?.show(atTop: false);
-                              },
-                              favorite: address.principal,
-                              child: RichText(
-                                  text: TextSpan(
-                                      text: "Address: ",
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: GetIt
-                                              .I<ConfigurationStore>()
-                                              .theme
-                                              .colorScheme
-                                              .onBackground,
-                                          fontSize: 18),
-                                      children: [
-                                        TextSpan(
-                                            text: address.address,
-                                            style: const TextStyle(
-                                                fontWeight: FontWeight.normal)),
-                                      ])),
-                            );
-                          },
-                        ),
+                        child: widget.usersStore.loadingStatus ==
+                                LoadingStatus.error
+                            ? ErrorMessage(
+                                onRetry: () async {
+                                  refreshKey.currentState?.show();
+                                },
+                                theme: GetIt.I<ConfigurationStore>().theme)
+                            : ListView.builder(
+                                padding: const EdgeInsets.only(bottom: 60),
+                                controller: scrollBarBodyController,
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                itemCount:
+                                    widget.usersStore.filteredUsers.length,
+                                itemBuilder: (context, index) {
+                                  UserModel user =
+                                      widget.usersStore.filteredUsers[index];
+                                  return DetailCard(
+                                    delete: () async {
+                                      await UserService.deleteUser(user);
+                                      await refreshKey.currentState
+                                          ?.show(atTop: false);
+                                    },
+                                    edit: () async {
+                                      GlobalKey<CustomFormState> formKey =
+                                          GlobalKey<CustomFormState>();
+                                      showDialog(
+                                        barrierDismissible: false,
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          CancelToken token = CancelToken();
+                                          return DialogForm(
+                                            title: "Edit user",
+                                            formKeys: [formKey],
+                                            onAccept: () async {
+                                              UserModel? editedUser = formKey
+                                                  .currentState
+                                                  ?.submit();
+                                              if (editedUser != null) {
+                                                await UserApi.updateUserById(
+                                                    editedUser,
+                                                    cancelToken: token);
+                                                if (context.mounted) {
+                                                  Navigator.of(context).pop();
+                                                }
+                                                await refreshKey.currentState
+                                                    ?.show();
+                                              }
+                                            },
+                                            onCancel: () async {
+                                              GetIt.I<HttpApiClient>()
+                                                  .cancelRequest(token);
+                                            },
+                                            children: [
+                                              UserForm(
+                                                key: formKey,
+                                                user: user,
+                                                adminMode: true,
+                                                editMode: true,
+                                              )
+                                            ],
+                                          );
+                                        },
+                                      );
+                                    },
+                                    child: UserDetails(
+                                      usersStrore: widget.usersStore,
+                                      refreshKey: refreshKey,
+                                      user: user,
+                                      theme:
+                                          GetIt.I<ConfigurationStore>().theme,
+                                      listTile: true,
+                                    ),
+                                  );
+                                }),
                       ),
                     ),
                     Visibility(
-                        visible:
-                        widget.addressesStore.filteredAddresses.isEmpty,
+                        visible: widget.usersStore.filteredUsers.isEmpty &&
+                            widget.usersStore.loadingStatus ==
+                                LoadingStatus.loaded,
                         child: const Align(
                           alignment: Alignment.center,
                           child: Text(
-                            "No addresses found",
+                            "No users found",
                             style: TextStyle(fontSize: 24),
                           ),
                         ))
@@ -150,34 +203,121 @@ class AddressesPageState extends State<AddressesPage> {
                 ),
               ),
             ],
-          );
-        },
-      ),
-      endDrawer: Drawer(
-        child: Scrollbar(
-      controller: scrollBarDrawerController,
-      child: const SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.only(top: 32.0, left: 12, right: 12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Align(alignment: Alignment.centerLeft,child: Text("Filters", style: TextStyle(fontSize: 32),)),
-              Divider(),
-              ///TODO: filtro de perfil
-            ],
           ),
-        ),
-      ),),),
-      floatingActionButton: FloatingActionButton(
-        heroTag: "add-address",
-        onPressed: () {},
-        child: const Icon(
-          Icons.add,
-        ),
-      ),
+          endDrawer: Drawer(
+            child: Scrollbar(
+              controller: scrollBarDrawerController,
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding:
+                      const EdgeInsets.only(top: 32.0, left: 12, right: 12),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "Filters",
+                            style: TextStyle(fontSize: 32),
+                          )),
+                      const Divider(),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 16.0),
+                        child: Container(
+                          width: double.infinity,
+                          decoration: ShapeDecoration(
+                            shape: OutlineInputBorder(
+                                borderSide: BorderSide(
+                              color: GetIt.I<ConfigurationStore>()
+                                  .theme
+                                  .disabledColor,
+                            )),
+                          ),
+                          child: Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 12.0),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.max,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                const Padding(
+                                  padding: EdgeInsets.only(right: 8.0),
+                                  child: Text(
+                                    "Profile: ",
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: DropdownButton<ProfileModel>(
+                                    isExpanded: true,
+                                    items: profiles,
+                                    value: widget.usersStore.profile,
+                                    underline: Container(),
+                                    onChanged: (ProfileModel? value) {
+                                      if (value != null) {
+                                        widget.usersStore.setProfile(value);
+                                        navigatorKey.currentState?.pop();
+                                      }
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          floatingActionButton: FloatingActionButton(
+            heroTag: "add-user",
+            onPressed: () {
+              GlobalKey<CustomFormState> formKey = GlobalKey<CustomFormState>();
+              showDialog(
+                barrierDismissible: false,
+                context: context,
+                builder: (BuildContext context) {
+                  CancelToken token = CancelToken();
+                  return DialogForm(
+                    title: "Add user",
+                    formKeys: [formKey],
+                    onAccept: () async {
+                      UserModel? editedUser = formKey.currentState?.submit();
+                      if (editedUser != null) {
+                        await UserApi.addUser(editedUser, cancelToken: token);
+                        if (context.mounted) {
+                          Navigator.of(context).pop();
+                        }
+                        await refreshKey.currentState?.show();
+                      }
+                    },
+                    onCancel: () async {
+                      GetIt.I<HttpApiClient>().cancelRequest(token);
+                    },
+                    children: [
+                      UserForm(
+                        key: formKey,
+                        adminMode: true,
+                      )
+                    ],
+                  );
+                },
+              );
+            },
+            child: const Icon(
+              Icons.add,
+            ),
+          ),
+        );
+      },
     );
   }
 }

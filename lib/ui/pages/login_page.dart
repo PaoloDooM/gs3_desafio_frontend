@@ -3,6 +3,7 @@ import 'package:get_it/get_it.dart';
 import 'package:gs3_desafio_front/main.dart';
 import 'package:gs3_desafio_front/src/services/user_service.dart';
 import 'package:gs3_desafio_front/ui/pages/home_page.dart';
+import 'package:gs3_desafio_front/ui/widgets/error_message.dart';
 import '../stores/configuration_store.dart';
 import '../stores/user_store.dart';
 
@@ -16,6 +17,7 @@ class LoginPage extends StatefulWidget {
 class LoginPageState extends State<LoginPage>
     with SingleTickerProviderStateMixin {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final ScrollController scrollbarController = ScrollController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool rememberEmail = false;
@@ -44,6 +46,7 @@ class LoginPageState extends State<LoginPage>
     _animationController.dispose();
     emailController.dispose();
     passwordController.dispose();
+    scrollbarController.dispose();
     super.dispose();
   }
 
@@ -86,169 +89,187 @@ class LoginPageState extends State<LoginPage>
                           minWidth: 320,
                           maxHeight: 800,
                           maxWidth: 600),
-                      child: SingleChildScrollView(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.max,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: <Widget>[
-                            const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 20),
-                              child: Text("Desafio GS3",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 24)),
-                            ),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 16.0),
-                              child: Form(
-                                key: _formKey,
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Padding(
-                                      padding:
-                                          const EdgeInsets.only(bottom: 12.0),
-                                      child: TextFormField(
-                                        controller: emailController,
-                                        enabled: !disableForm,
-                                        validator: (String? value) {
-                                          if ((value ?? "").isEmpty) {
-                                            return "Required field";
-                                          } else if (!RegExp(
-                                                  r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
-                                              .hasMatch(value ?? "")) {
-                                            return "Invalid email";
-                                          }
-                                          return null;
-                                        },
-                                        decoration: const InputDecoration(
-                                            label: Text("Email"),
-                                            prefixIcon: Icon(Icons.person),
-                                            border: OutlineInputBorder()),
-                                      ),
-                                    ),
-                                    TextFormField(
-                                      controller: passwordController,
-                                      enabled: !disableForm,
-                                      validator: (String? value) {
-                                        if ((value ?? "").isEmpty) {
-                                          return "Required field";
-                                        }
-                                        return null;
-                                      },
-                                      obscureText: !showPassword,
-                                      decoration: InputDecoration(
-                                          label: const Text("Password"),
-                                          prefixIcon: const Icon(Icons.key),
-                                          suffixIcon: IconButton(
-                                              onPressed: () {
-                                                setState(() {
-                                                  showPassword = !showPassword;
-                                                });
-                                              },
-                                              icon: Icon(showPassword
-                                                  ? Icons
-                                                      .remove_red_eye_outlined
-                                                  : Icons.remove_red_eye)),
-                                          border: const OutlineInputBorder()),
-                                    ),
-                                    CheckboxListTile(
-                                      value: rememberEmail,
-                                      enabled: !disableForm,
-                                      onChanged: (bool? value) async {
-                                        if (value != null) {
-                                          if (!value) {
-                                            await UserService
-                                                .deleteRememberedEmail();
-                                          }
-                                          setState(() {
-                                            rememberEmail = value;
-                                          });
-                                        }
-                                      },
-                                      title: const Text("Remember email"),
-                                    ),
-                                    Padding(
-                                      padding:
-                                          const EdgeInsets.only(bottom: 20),
-                                      child: SizedBox(
-                                        width: double.infinity,
-                                        child: ElevatedButton(
-                                            onPressed: disableForm
-                                                ? null
-                                                : () async {
-                                                    if (_formKey.currentState
-                                                            ?.validate() ??
-                                                        false) {
-                                                      setState(() {
-                                                        showPassword = false;
-                                                        disableForm = true;
-                                                      });
-                                                      await UserService.login(
-                                                          emailController.text,
-                                                          passwordController
-                                                              .text,
-                                                          rememberEmail);
-                                                      try {
-                                                        await getUserAndNavigateToHome();
-                                                      } catch (e) {
-                                                        snackbarKey.currentState
-                                                          ?..clearSnackBars()
-                                                          ..showSnackBar(
-                                                              SnackBar(
-                                                                  content: Text(
-                                                                    "$e",
-                                                                    style: TextStyle(
-                                                                        color: GetIt.I<ConfigurationStore>()
-                                                                            .theme
-                                                                            .colorScheme
-                                                                            .onError),
-                                                                  ),
-                                                                  duration:
-                                                                      const Duration(
-                                                                          seconds:
-                                                                              12),
-                                                                  backgroundColor: GetIt.I<
-                                                                          ConfigurationStore>()
-                                                                      .theme
-                                                                      .colorScheme
-                                                                      .error));
-                                                        setState(() {
-                                                          disableForm = false;
-                                                        });
-                                                      }
-                                                    }
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 16),
+                            child: Text("Desafio GS3",
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 24)),
+                          ),
+                          Flexible(
+                            child: Scrollbar(
+                              controller: scrollbarController,
+                              child: SingleChildScrollView(
+                                controller: scrollbarController,
+                                child: Padding(
+                                  padding: const EdgeInsets.only(
+                                      top: 6.0, right: 16, left: 16),
+                                  child: Form(
+                                    key: _formKey,
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                              bottom: 12.0),
+                                          child: TextFormField(
+                                            controller: emailController,
+                                            enabled: !disableForm,
+                                            validator: (String? value) {
+                                              if ((value ?? "").isEmpty) {
+                                                return "Required field";
+                                              }
+                                              if (!RegExp(
+                                                      r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+                                                  .hasMatch(value ?? "")) {
+                                                return "Invalid email";
+                                              }
+                                              return null;
+                                            },
+                                            decoration: const InputDecoration(
+                                                label: Text("Email"),
+                                                prefixIcon: Icon(Icons.person),
+                                                border: OutlineInputBorder()),
+                                          ),
+                                        ),
+                                        TextFormField(
+                                          controller: passwordController,
+                                          enabled: !disableForm,
+                                          validator: (String? value) {
+                                            if ((value ?? "").isEmpty) {
+                                              return "Required field";
+                                            }
+                                            return null;
+                                          },
+                                          obscureText: !showPassword,
+                                          decoration: InputDecoration(
+                                              label: const Text("Password"),
+                                              prefixIcon: const Icon(Icons.key),
+                                              suffixIcon: IconButton(
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      showPassword =
+                                                          !showPassword;
+                                                    });
                                                   },
-                                            child: disableForm
-                                                ? SizedBox.fromSize(
-                                                    size: const Size(20, 20),
-                                                    child:
-                                                        CircularProgressIndicator(
-                                                      color: GetIt.I<
-                                                              ConfigurationStore>()
-                                                          .theme
-                                                          .colorScheme
-                                                          .secondary,
-                                                    ))
-                                                : const Text(
-                                                    "Login",
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        fontSize: 20),
-                                                  )),
-                                      ),
-                                    )
-                                  ],
+                                                  icon: Icon(showPassword
+                                                      ? Icons
+                                                          .remove_red_eye_outlined
+                                                      : Icons.remove_red_eye)),
+                                              border:
+                                                  const OutlineInputBorder()),
+                                        ),
+                                        Padding(
+                                            padding: const EdgeInsets.only(
+                                                top: 12.0, bottom: 6),
+                                            child: Container(
+                                              width: double.infinity,
+                                              decoration: ShapeDecoration(
+                                                shape: OutlineInputBorder(
+                                                    borderSide: BorderSide(
+                                                  color: GetIt.I<
+                                                          ConfigurationStore>()
+                                                      .theme
+                                                      .disabledColor,
+                                                )),
+                                              ),
+                                              child: CheckboxListTile(
+                                                value: rememberEmail,
+                                                enabled: !disableForm,
+                                                onChanged: (bool? value) async {
+                                                  if (value != null) {
+                                                    if (!value) {
+                                                      await UserService
+                                                          .deleteRememberedEmail();
+                                                    }
+                                                    setState(() {
+                                                      rememberEmail = value;
+                                                    });
+                                                  }
+                                                },
+                                                title: const Text(
+                                                    "Remember email"),
+                                              ),
+                                            ))
+                                      ],
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(
+                                bottom: 8, top: 8, left: 16, right: 16),
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                  onPressed: disableForm
+                                      ? null
+                                      : () async {
+                                          if (_formKey.currentState
+                                                  ?.validate() ??
+                                              false) {
+                                            setState(() {
+                                              showPassword = false;
+                                              disableForm = true;
+                                            });
+                                            try {
+                                              await UserService.login(
+                                                  emailController.text,
+                                                  passwordController.text,
+                                                  rememberEmail);
+                                              await getUserAndNavigateToHome();
+                                            } catch (e) {
+                                              snackbarKey.currentState
+                                                ?..clearSnackBars()
+                                                ..showSnackBar(SnackBar(
+                                                    content: Text(
+                                                      "$e",
+                                                      style: TextStyle(
+                                                          color: GetIt.I<
+                                                                  ConfigurationStore>()
+                                                              .theme
+                                                              .colorScheme
+                                                              .onError),
+                                                    ),
+                                                    duration: const Duration(
+                                                        seconds: 12),
+                                                    backgroundColor: GetIt.I<
+                                                            ConfigurationStore>()
+                                                        .theme
+                                                        .colorScheme
+                                                        .error));
+                                              setState(() {
+                                                disableForm = false;
+                                              });
+                                            }
+                                          }
+                                        },
+                                  child: disableForm
+                                      ? SizedBox.fromSize(
+                                          size: const Size(20, 20),
+                                          child: CircularProgressIndicator(
+                                            color: GetIt.I<ConfigurationStore>()
+                                                .theme
+                                                .colorScheme
+                                                .secondary,
+                                          ))
+                                      : const Text(
+                                          "Login",
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 20),
+                                        )),
+                            ),
+                          )
+                        ],
                       ),
                     ),
                   ),
@@ -272,37 +293,13 @@ class LoginPageState extends State<LoginPage>
               ],
             );
           } else if (snapshot.hasError) {
-            return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    color:
-                        GetIt.I<ConfigurationStore>().theme.colorScheme.error,
-                    size: 128,
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Text(
-                      "Something went wrong",
-                      style: TextStyle(fontSize: 24),
-                    ),
-                  ),
-                  TextButton(
-                      onPressed: () async {
-                        await GetIt.I<UserStore>().setApiToken(null);
-                        await GetIt.I<UserStore>().setUser(null);
-                        setState(() {});
-                      },
-                      child: const Text("Retry",
-                          style: TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold)))
-                ],
-              ),
-            );
+            return ErrorMessage(
+                onRetry: () async {
+                  await GetIt.I<UserStore>().setApiToken(null);
+                  await GetIt.I<UserStore>().setUser(null);
+                  setState(() {});
+                },
+                theme: GetIt.I<ConfigurationStore>().theme);
           } else {
             return Center(
                 child: AnimatedBuilder(

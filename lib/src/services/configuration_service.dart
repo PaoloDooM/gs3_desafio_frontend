@@ -23,9 +23,8 @@ class ConfigurationService {
     if (GetIt.I<UserStore>().user?.profile.label.toLowerCase() == 'admin') {
       GetIt.I<ConfigurationStore>()
           .setUserProfiles(await UserApi.getProfiles());
-    }else{
-      GetIt.I<ConfigurationStore>()
-          .setUserProfiles([]);
+    } else {
+      GetIt.I<ConfigurationStore>().setUserProfiles([]);
     }
   }
 }

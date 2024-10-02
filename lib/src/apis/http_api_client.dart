@@ -10,6 +10,11 @@ class HttpApiClient extends HttpDioClient {
     return cancelToken;
   }
 
+  cancelRequest(CancelToken cancelToken) {
+    cancelToken.cancel();
+    cancelTokens.remove(cancelToken);
+  }
+
   cancelAllRequests({CancelToken? exclude}) {
     for (CancelToken cancelToken in List.of(cancelTokens)) {
       if (exclude != cancelToken) {

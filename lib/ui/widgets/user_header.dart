@@ -68,14 +68,21 @@ class UserHeader extends StatelessWidget {
                       .colorScheme
                       .onBackground),
             ),
-            Text(
-              user?.name ?? "",
-              style: TextStyle(
-                  color: GetIt.I<ConfigurationStore>()
-                      .theme
-                      .colorScheme
-                      .onBackground,
-                  fontSize: 20),
+            SizedBox(
+              width: 225,
+              height: 30,
+              child: Text(
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                softWrap: true,
+                user?.name ?? "",
+                style: TextStyle(
+                    color: GetIt.I<ConfigurationStore>()
+                        .theme
+                        .colorScheme
+                        .onBackground,
+                    fontSize: 20),
+              ),
             )
           ])
     ];

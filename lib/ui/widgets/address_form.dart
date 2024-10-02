@@ -3,6 +3,7 @@ import 'package:get_it/get_it.dart';
 import 'package:gs3_desafio_front/ui/stores/user_store.dart';
 import 'package:gs3_desafio_front/ui/widgets/custom_form.dart';
 import '../../src/models/address_model.dart';
+import '../stores/configuration_store.dart';
 
 class AddressForm extends CustomForm {
   final AddressModel? address;
@@ -47,7 +48,7 @@ class AddressFormState extends CustomFormState<AddressForm> {
   AddressModel? submit() {
     if (_formKey.currentState?.validate() ?? false) {
       return AddressModel(
-          id: -1,
+          id: widget.address?.id ?? -1,
           userId: GetIt.I<UserStore>().user?.id ?? -1,
           description: descriptionTextController.text,
           address: addressTextController.text,
@@ -103,18 +104,29 @@ class AddressFormState extends CustomFormState<AddressForm> {
                   label: Text("Address"), border: OutlineInputBorder()),
             ),
           ),
-          CheckboxListTile(
-            value: favorite,
-            enabled: !disableForm,
-            onChanged: (bool? value) async {
-              if (value != null) {
-                setState(() {
-                  favorite = value;
-                });
-              }
-            },
-            title: const Text("Favorite"),
-          ),
+          Padding(
+              padding: const EdgeInsets.only(top: 15.0),
+              child: Container(
+                width: double.infinity,
+                decoration: ShapeDecoration(
+                  shape: OutlineInputBorder(
+                      borderSide: BorderSide(
+                    color: GetIt.I<ConfigurationStore>().theme.disabledColor,
+                  )),
+                ),
+                child: CheckboxListTile(
+                  value: favorite,
+                  enabled: !disableForm,
+                  onChanged: (bool? value) async {
+                    if (value != null) {
+                      setState(() {
+                        favorite = value;
+                      });
+                    }
+                  },
+                  title: const Text("Favorite"),
+                ),
+              ))
         ],
       ),
     );

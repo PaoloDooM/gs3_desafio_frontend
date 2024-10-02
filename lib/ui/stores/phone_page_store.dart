@@ -3,7 +3,9 @@ import 'package:get_it/get_it.dart';
 import 'package:gs3_desafio_front/ui/stores/user_store.dart';
 import 'package:mobx/mobx.dart';
 import '../../main.dart';
+import '../../src/apis/user_api.dart';
 import '../../src/models/telephone_number_model.dart';
+import '../../src/models/user_model.dart';
 import '../../src/services/user_service.dart';
 import 'configuration_store.dart';
 
@@ -38,10 +40,15 @@ abstract class PhonePageBase with Store {
     _phoneNumbers = ObservableList.of(phoneNumbers);
   }
 
-  Future refreshPhoneNumbers() async {
+  Future refreshPhoneNumbers({UserModel? user}) async {
     try {
-      await UserService.getLoggedUser();
-      setPhoneNumbers(GetIt.I<UserStore>().user!.telephoneNumbers);
+      if (user != null) {
+        user = await UserApi.getUserById(user.id);
+        setPhoneNumbers(user.telephoneNumbers);
+      } else {
+        await UserService.getLoggedUser();
+        setPhoneNumbers(GetIt.I<UserStore>().user!.telephoneNumbers);
+      }
     } catch (e) {
       snackbarKey.currentState
         ?..clearSnackBars()

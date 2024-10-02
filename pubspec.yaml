@@ -17,6 +17,7 @@ dependencies:
   mobx_codegen: ^2.6.1
   get_it: ^8.0.0
   flutter_dotenv: ^5.1.0
+  collection: ^1.18.0
 
 dev_dependencies:
   flutter_test:

@@ -1,11 +1,13 @@
-import 'dart:convert';
-
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:get_it/get_it.dart';
 import 'package:gs3_desafio_front/main.dart';
 import 'package:gs3_desafio_front/ui/widgets/detail_card.dart';
+import '../../src/apis/http_api_client.dart';
+import '../../src/apis/user_api.dart';
 import '../../src/models/telephone_number_model.dart';
+import '../../src/models/user_model.dart';
 import '../../src/services/user_service.dart';
 import '../stores/configuration_store.dart';
 import '../stores/phone_page_store.dart';
@@ -14,11 +16,15 @@ import '../widgets/dialog_form.dart';
 import '../widgets/phone_form.dart';
 
 class PhonesPage extends StatefulWidget {
+  final UserModel? user;
   final PhonePageStore phonesStore;
   final Future<void> Function() refreshPhones;
 
   const PhonesPage(
-      {super.key, required this.phonesStore, required this.refreshPhones});
+      {super.key,
+      required this.phonesStore,
+      required this.refreshPhones,
+      this.user});
 
   @override
   State<StatefulWidget> createState() => PhonesPageState();
@@ -94,14 +100,68 @@ class PhonesPageState extends State<PhonesPage> {
                             return DetailCard(
                               title: phone.description,
                               delete: () async {
-                                await UserService.deletePhone(phone);
+                                UserModel? user = widget.user;
+                                if (user != null) {
+                                  await UserApi.deletePhoneById(user.id, phone);
+                                } else {
+                                  await UserService.deletePhone(phone);
+                                }
                                 await _refreshKey.currentState
                                     ?.show(atTop: false);
                               },
-                              edit: () async {},
+                              edit: () async {
+                                GlobalKey<CustomFormState> formKey =
+                                    GlobalKey<CustomFormState>();
+                                showDialog(
+                                  barrierDismissible: false,
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    CancelToken token = CancelToken();
+                                    return DialogForm(
+                                      title: "Edit phone number",
+                                      formKeys: [formKey],
+                                      onAccept: () async {
+                                        TelephoneNumberModel? editedPhone =
+                                            formKey.currentState?.submit();
+                                        if (editedPhone != null) {
+                                          UserModel? user = widget.user;
+                                          if (user != null) {
+                                            await UserApi.updatePhoneById(
+                                                user.id, editedPhone,
+                                                cancelToken: token);
+                                          } else {
+                                            await UserApi.updatePhone(
+                                                editedPhone,
+                                                cancelToken: token);
+                                          }
+                                          if (context.mounted) {
+                                            Navigator.of(context).pop();
+                                          }
+                                          await widget.refreshPhones();
+                                        }
+                                      },
+                                      onCancel: () async {
+                                        GetIt.I<HttpApiClient>()
+                                            .cancelRequest(token);
+                                      },
+                                      children: [
+                                        PhoneForm(
+                                          key: formKey,
+                                          phone: phone,
+                                        )
+                                      ],
+                                    );
+                                  },
+                                );
+                              },
                               toggleFavorite: () async {
                                 phone.principal = true;
-                                await UserService.updatePhone(phone);
+                                UserModel? user = widget.user;
+                                if (user != null) {
+                                  await UserApi.updatePhoneById(user.id, phone);
+                                } else {
+                                  await UserService.updatePhone(phone);
+                                }
                                 await _refreshKey.currentState
                                     ?.show(atTop: false);
                               },
@@ -149,17 +209,34 @@ class PhonesPageState extends State<PhonesPage> {
         onPressed: () {
           GlobalKey<CustomFormState> formKey = GlobalKey<CustomFormState>();
           showDialog(
+            barrierDismissible: false,
             context: context,
             builder: (BuildContext context) {
+              CancelToken token = CancelToken();
               return DialogForm(
                 title: "Add phone number",
-                forms: [PhoneForm(key: formKey)],
                 formKeys: [formKey],
                 onAccept: () async {
-                  debugPrint(
-                      jsonEncode(formKey.currentState?.submit()?.toJson()));
+                  TelephoneNumberModel? editedPhone =
+                      formKey.currentState?.submit();
+                  if (editedPhone != null) {
+                    UserModel? user = widget.user;
+                    if (user != null) {
+                      await UserApi.addPhoneById(user.id, editedPhone,
+                          cancelToken: token);
+                    } else {
+                      await UserApi.addPhone(editedPhone, cancelToken: token);
+                    }
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                    }
+                    await widget.refreshPhones();
+                  }
                 },
-                onCancel: () async {},
+                onCancel: () async {
+                  GetIt.I<HttpApiClient>().cancelRequest(token);
+                },
+                children: [PhoneForm(key: formKey)],
               );
             },
           );
