@@ -26,10 +26,16 @@ Para compilar ou executar o aplicativo, basta rodar o comando
 flutter pub get
 ```
 
-para baixar as dependências, e opcionalmente
+para baixar as dependências. Neste ponto, é possível executar o app no emulador com o comando
+
+```plaintext
+flutter run
+```
+
+e opcionalmente para construir os APKs o próximo comando
 
 ```plaintext
 flutter build apk --target-platform android-arm,android-arm64,android-x64 --split-per-abi
 ```
 
-para construir os APKs. Dependendo do emulador a ser usado, deverá ser ajustada a variável “BASEURL” no arquivo .env
+Dependendo do emulador a ser usado, deverá ser ajustada a variável “BASEURL” no arquivo .env
