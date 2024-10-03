@@ -39,3 +39,8 @@ flutter build apk --target-platform android-arm,android-arm64,android-x64 --spli
 ```
 
 Dependendo do emulador a ser usado, deverá ser ajustada a variável “BASEURL” no arquivo .env
+
+## Credenciais de teste
+
+*   **Usuário:** paolobufalinomora91@gmail.com
+*   **Senha:** 123456
