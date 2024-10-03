@@ -1,16 +1,35 @@
-# gs3_desafio_front
+## Desafio GS3 Tecnologia (Full stack)
 
-Frontend para o desafio da GS3
+1.  Criar um sistema que gerencie usuários e perfis.
+2.  Usuário possui um perfil; um perfil pode ter vários usuários.
+3.  O sistema deverá ter um administrador que crie os usuários e atribua ou modifique os perfis.
+4.  O perfil usuário comum apenas visualizará suas próprias informações, podendo editá-las,  
+    menos o perfil.
+5.  Favor não utilizar os plugins do laravel que já trazem pronto esta solução, tipo o spatie/laravel-  
+    permission.
+6.  Utilizar no frontend a versão mais recente do Flutter.
+7.  Utilizar no back o banco de sua preferência, preferencialmente PHP > 8 + Laravel 11.
+8.  Será avaliado o código e o sistema rodando, favor encaminhar o link funcional ou as  
+    instruções para subir a aplicação.
+9.  Prazo para fazer o desafio: 1 semana.
 
-## Getting Started
+## Requerimentos para compilação/execução do aplicativo android
 
-This project is a starting point for a Flutter application.
+*   **Flutter:** ^3.19.6
+*   **AndroidSdk:** 34
 
-A few resources to get you started if this is your first Flutter project:
+## Instruções de compilação/execução
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+Para compilar ou executar o aplicativo, basta rodar o comando
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```plaintext
+flutter pub get
+```
+
+para baixar as dependências, e opcionalmente
+
+```plaintext
+flutter build apk --target-platform android-arm,android-arm64,android-x64 --split-per-abi
+```
+
+para construir os APKs. Dependendo do emulador a ser usado, deverá ser ajustada a variável “BASEURL” no arquivo .env
